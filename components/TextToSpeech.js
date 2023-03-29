@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
-    StyleSheet, Text, View, TouchableOpacity, Modal,  TouchableHighlight,} from 'react-native';
+    StyleSheet, Text, View, TouchableOpacity, Modal, TouchableHighlight,
+} from 'react-native';
 import { TextInput, Appbar } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -8,12 +9,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 const TextToSpeech = () => {
     const [selection, setSelection] = useState({ start: 0, end: 0 });
     const [text, setText] = useState('');
-    const [showNavBar, setShowNavBar] = useState(false);
 
     //const showNavBar = selection.start !== selection.end;
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalToneVisible, setModalToneVisible] = useState(false);
+
+    const [modalVoiceVisible, setModalVoiceVisible] = useState(false);
     const [breakDuration, setBreakDuration] = useState(0);
     const [breakUnit, setBreakUnit] = useState('s');
+    const [pitchOption, setPitchOption] = useState('default');
+
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedOption, setSelectedOption] = useState(null);
     console.log('Selected option:', selectedOption);
@@ -26,12 +31,22 @@ const TextToSpeech = () => {
         setModalVisible(true);
         setSelectedOption('break');
     };
+
+
+    const onTonePress = () => {
+        setModalVoiceVisible(false);
+        setModalToneVisible(true);
+        setSelectedOption('pitch');
+    };
     const onBreakDurationChange = (value) => {
         setBreakDuration(value);
     };
 
     const onBreakUnitChange = (value) => {
         setBreakUnit(value);
+    };
+    const onToneChange = (value) => {
+        setPitchOption(value);
     };
 
     const onBreakSubmit = () => {
@@ -42,52 +57,51 @@ const TextToSpeech = () => {
         // Close modal
         setModalVisible(false);
     };
-  
+    const onToneSubmit = () => {
+        // Do something with break duration and unit
+        console.log('Tone option:', pitchOption);
+
+        // Close modal
+        setModalToneVisible(false);
+    };
 
     return (
         <View style={styles.container}>
-<SafeAreaProvider>
-            <Appbar.Header>
-                <Appbar.BackAction  />
-                <Appbar.Content title="Text To Speech" />
-            
-            </Appbar.Header>
+            <SafeAreaProvider>
+               
 
-            <View style={showNavBar ? styles.navBar : styles.hidden}>
-                <Text style={styles.navText} onPress={() => setMenuVisible(true)}>Text Structure</Text>
-                <Text style={styles.navText}>Voice</Text>
-                <Text style={styles.navText}>Pronunciation</Text>
-                <Text style={styles.navText}>Listen</Text>
+                <View style={ styles.navBar }>
+                    <Text style={styles.navText} onPress={() => setMenuVisible(true)}>Text Structure</Text>
+                    <Text style={styles.navText} onPress={() => setModalVoiceVisible(true)}>Voice</Text>
+                    <Text style={styles.navText}>Pronunciation</Text>
+                    <Text style={styles.navText} >listen</Text>
 
-            </View>
-            <View>
-                
-            <TextInput
-                    onLongPress={() => setShowNavBar(true)}
-                    onSelectionChange={(event) => {
+                </View>
+                <View>
+
+                    <TextInput //text input 
+                        onSelectionChange={(event) => {
                             setSelection(event.nativeEvent.selection);
-                            setShowNavBar(event.nativeEvent.selection.start !== event.nativeEvent.selection.end);
                         }}
-                    style={styles.textInput}
-                    selectionColor='#89CFF0'
-                    activeOutlineColor='#CCD8EE'
-                    numberOfLines={15}
-                    mode='outlined'
-                    multiline={true}
-                    //onSelectionChange={({ nativeEvent: { selection } }) => {
-                    //setSelection(selection);
-                //}}
-                onChangeText={(text) => setText(text)}
-                value={text}
-            />
+                        style={styles.textInput}
+                        selectionColor='#89CFF0'
+                        activeOutlineColor='#CCD8EE'
+                        numberOfLines={15}
+                        mode='outlined'
+                        multiline={true}
+                        //onSelectionChange={({ nativeEvent: { selection } }) => {
+                        //setSelection(selection);
+                        //}}
+                        onChangeText={(text) => setText(text)}
+                        value={text}
+                    />
 
 
-            </View>
-            </SafeAreaProvider>    
+                </View>
+            </SafeAreaProvider>
 
-
-
-            <Modal
+            
+            <Modal //modal for text structur
                 animationType="slide"
                 transparent={true}
                 visible={menuVisible}
@@ -112,6 +126,32 @@ const TextToSpeech = () => {
                 </View>
             </Modal>
 
+            <Modal //modal for voice
+                animationType="slide"
+                transparent={true}
+                visible={modalVoiceVisible}
+                onRequestClose={() => {
+                    setModalVoiceVisible(false);
+                }}
+            >
+                <View style={styles.modalView}>
+                    <TouchableHighlight
+                        onPress={() => {
+                            setModalVoiceVisible(!modalVoiceVisible);
+                        }}
+                    >
+                        <Text style={styles.closeButton}>X</Text>
+                    </TouchableHighlight>
+                    <Text style={styles.menuOption} onPress={() => {
+                        onTonePress();
+                        setSelectedOption('pitch');
+                    }} >Tone</Text>
+                    <Text style={styles.menuOption}>Speed</Text>
+                    <Text style={styles.menuOption}>Language</Text>
+                    <Text style={styles.menuOption}>Audio sound effect</Text>
+
+                </View>
+            </Modal>
 
 
 
@@ -125,8 +165,7 @@ const TextToSpeech = () => {
 
 
 
-
-            <Modal
+            <Modal //break config modal
                 animationType='slide'
                 transparent={true}
                 visible={modalVisible}
@@ -134,11 +173,6 @@ const TextToSpeech = () => {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Set Break point Time</Text>
-
-
-
-                        
-
                         {modalVisible && (
                             <View style={styles.modalBreakInputContainer}>
                                 <TextInput
@@ -175,10 +209,61 @@ const TextToSpeech = () => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                    
+
                 </View>
             </Modal >
-        
+
+
+
+            <Modal //tone config modal
+                animationType='slide'
+                transparent={true}
+                visible={modalToneVisible}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Set Tone </Text>
+                        {modalToneVisible && (
+                            
+
+                                <View style={styles.modalBreakUnitContainer}>
+                                    <TouchableOpacity
+                                        style={[styles.modalBreakUnitButton, pitchOption === 'x-low' ? styles.modalBreakUnitButtonActive : null]}
+                                        onPress={() => onToneChange('x-low')}
+                                    >
+                                        <Text style={styles.modalBreakUnitButtonText}>X-Low</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={[styles.modalBreakUnitButton, pitchOption === 'low' ? styles.modalBreakUnitButtonActive : null]}
+                                        onPress={() => onToneChange('low')}
+                                    >
+                                        <Text style={styles.modalBreakUnitButtonText}>Low</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.modalBreakUnitButton, pitchOption === 'medium' ? styles.modalBreakUnitButtonActive : null]}
+                                        onPress={() => onToneChange('medium')}
+                                    >
+                                        <Text style={styles.modalBreakUnitButtonText}>Medium</Text>
+                                    </TouchableOpacity>
+                                </View>
+                    
+                        )}
+                        <View style={styles.modalButtonContainer}>
+                            <TouchableOpacity style={styles.modalButton} onPress={() => setModalToneVisible(false)}>
+                                <Text style={styles.modalButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.modalButton} onPress={onToneSubmit}>
+                                <Text style={styles.modalButtonText}>Submit</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                </View>
+            </Modal >
+
+           
 
 
 
@@ -200,7 +285,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'lightblue',
         padding: 10,
         marginTop: 0,
-        borderRadius:10,
+        borderRadius: 10,
         paddingVertical: 13,
     },
     navText: {
@@ -221,7 +306,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#4A4A4A',
-        marginTop:100,
+        marginTop: 100,
     },
     modalView: {
         margin: 20,
@@ -322,7 +407,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
     modalBreakUnitButton: {
-        backgroundColor: '#CCD8EE', 
+        backgroundColor: '#CCD8EE',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
